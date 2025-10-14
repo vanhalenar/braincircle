@@ -1,4 +1,5 @@
 import 'package:brain_circle/widgets/friend_card_big.dart';
+import 'package:brain_circle/utils/focus_timer.dart';
 import 'package:flutter/material.dart';
 
 class Home extends StatefulWidget {
@@ -9,6 +10,8 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
+  final FocusTimer _focusTimer = FocusTimer();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -21,17 +24,23 @@ class _HomeState extends State<Home> {
                 Container(
                   padding: EdgeInsets.fromLTRB(0, 40, 0, 20),
                   child: Center(
-                    child: Text(
-                      "00:00:00",
-                      style: Theme.of(context).textTheme.displayLarge,
+                    child: ValueListenableBuilder<Duration>(
+                      valueListenable: _focusTimer.elapsed,
+                      builder: (_, elapsed, __) => Text(
+                        _focusTimer.formatDuration(elapsed),
+                        style: Theme.of(context).textTheme.displayLarge,
+                      ),
                     ),
                   ),
                 ),
-                IconButton.filledTonal(
-                        onPressed: enterFocusMode,
-                        icon: Icon(Icons.play_arrow),
-                        iconSize: 70,
-                      ),
+                ValueListenableBuilder<bool>(
+                  valueListenable: _focusTimer.running,
+                  builder: (_, running, __) => IconButton.filledTonal(
+                    onPressed: _focusTimer.toggle,
+                    icon: Icon(running ? Icons.pause : Icons.play_arrow),
+                    iconSize: 70,
+                  ),
+                ),
               ],
             ),
           ),
@@ -63,5 +72,10 @@ class _HomeState extends State<Home> {
     );
   }
 
-  void enterFocusMode() {}
+
+  @override
+  void dispose() {
+    _focusTimer.dispose();
+    super.dispose();
+  }
 }
