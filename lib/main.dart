@@ -1,7 +1,35 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'homepage.dart';
+import 'utils/foreground_task_handler.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  FlutterForegroundTask.init(
+    androidNotificationOptions: AndroidNotificationOptions(
+      channelId: 'focus_timer_channel',
+      channelName: 'Focus Timer',
+      channelDescription: 'Foreground service for focus timer',
+      channelImportance: NotificationChannelImportance.DEFAULT,
+      priority: NotificationPriority.DEFAULT,
+      iconData: const NotificationIconData(
+        resType: ResourceType.mipmap,
+        resPrefix: ResourcePrefix.ic,
+        name: 'launcher',
+      ),
+    ),
+    iosNotificationOptions: const IOSNotificationOptions(),
+    foregroundTaskOptions: const ForegroundTaskOptions(
+      interval: 1000,
+      isOnceEvent: false,
+      autoRunOnBoot: false,
+      allowWifiLock: false,
+    ),
+  );
+
+  FlutterForegroundTask.setTaskHandler(ForegroundTimerHandler());
+
   runApp(const MyApp());
 }
 
