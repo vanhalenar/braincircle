@@ -11,13 +11,18 @@ void main() {
       channelId: 'focus_timer_channel',
       channelName: 'Focus Timer',
       channelDescription: 'Foreground service for focus timer',
-      channelImportance: NotificationChannelImportance.DEFAULT,
-      priority: NotificationPriority.DEFAULT,
+      channelImportance: NotificationChannelImportance.LOW,
+      priority: NotificationPriority.LOW,
       iconData: const NotificationIconData(
         resType: ResourceType.mipmap,
         resPrefix: ResourcePrefix.ic,
         name: 'launcher',
       ),
+      // Add pause/play buttons in the persistent notification
+      buttons: [
+        NotificationButton(id: 'pause', text: 'Pause'),
+        NotificationButton(id: 'play', text: 'Play'),
+      ],
     ),
     iosNotificationOptions: const IOSNotificationOptions(),
     foregroundTaskOptions: const ForegroundTaskOptions(

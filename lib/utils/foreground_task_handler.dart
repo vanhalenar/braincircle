@@ -12,12 +12,25 @@ import 'dart:io';
 class ForegroundTimerHandler extends TaskHandler {
   Timer? _timer;
   int _elapsedSeconds = 0;
+  SendPort? _mainSendPort;
+  bool _paused = false;
 
   @override
   Future<void> onStart(DateTime timestamp, SendPort? sendPort) async {
+    _mainSendPort = sendPort;
+    debugPrint('Background handler started, sendPort: $_mainSendPort');
+
     // Start ticking
     _timer = Timer.periodic(const Duration(seconds: 1), (_) async {
-      _elapsedSeconds++;
+      // Check command saved by main isolate (play/pause)
+      try {
+        final cmd = await FlutterForegroundTask.getData<String>(key: 'command');
+        _paused = (cmd == 'pause');
+      } catch (_) {}
+
+      if (!_paused) {
+        _elapsedSeconds++;
+      }
       // Update notification (protect with try/catch in case plugin isn't
       // registered in this isolate).
       if (Platform.isAndroid) {
@@ -32,7 +45,11 @@ class ForegroundTimerHandler extends TaskHandler {
       }
       // Optionally notify main isolate; protect it as well.
       try {
-        sendPort?.send(_elapsedSeconds);
+        _mainSendPort?.send({
+          'type': 'tick',
+          'elapsed': _elapsedSeconds,
+          'running': !_paused,
+        });
       } catch (_) {}
     });
   }
@@ -44,6 +61,48 @@ class ForegroundTimerHandler extends TaskHandler {
   @override
   Future<void> onDestroy(DateTime timestamp, SendPort? sendPort) async {
     _timer?.cancel();
+  }
+
+  Future<void> onButtonPressed(String id) async {
+    // Handle notification button presses: pause/play
+    if (id == 'pause') {
+      _timer?.cancel();
+      _paused = true;
+      try {
+        await FlutterForegroundTask.saveData(key: 'command', value: 'pause');
+      } catch (_) {}
+      // update notification to show paused state but keep service alive
+      if (Platform.isAndroid) {
+        try {
+          await FlutterForegroundTask.updateService(
+            notificationTitle: 'Focus timer paused',
+            notificationText: _formatDuration(_elapsedSeconds),
+          );
+        } catch (e) {
+          debugPrint('Update on pause failed: $e');
+        }
+      }
+    } else if (id == 'play') {
+      // resume
+      _paused = false;
+      try {
+        await FlutterForegroundTask.saveData(key: 'command', value: 'play');
+      } catch (_) {}
+
+      _timer ??= Timer.periodic(const Duration(seconds: 1), (_) async {
+        _elapsedSeconds++;
+        if (Platform.isAndroid) {
+          try {
+            await FlutterForegroundTask.updateService(
+              notificationTitle: 'Focus timer running',
+              notificationText: _formatDuration(_elapsedSeconds),
+            );
+          } catch (e) {
+            debugPrint('Update on play failed: $e');
+          }
+        }
+      });
+    }
   }
 
   // Some versions expect onRepeatEvent - implement as a no-op because we
