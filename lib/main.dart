@@ -1,3 +1,4 @@
+import 'package:brain_circle/pages/focus_page.dart';
 import 'package:flutter/material.dart';
 import 'homepage.dart';
 
@@ -16,6 +17,10 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.lightGreen),
       ),
       home: Homepage(),
+      routes: {
+        '/homepage': (context) => Homepage(),
+        '/focus': (context) => FocusPage(),
+      },
     );
   }
 }

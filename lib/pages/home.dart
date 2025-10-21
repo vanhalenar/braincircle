@@ -1,3 +1,5 @@
+import 'package:brain_circle/extra/roll_down_page_route.dart';
+import 'package:brain_circle/pages/focus_page.dart';
 import 'package:brain_circle/widgets/friend_card_big.dart';
 import 'package:flutter/material.dart';
 
@@ -18,36 +20,46 @@ class _HomeState extends State<Home> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Container(
-                  padding: EdgeInsets.fromLTRB(0, 40, 0, 20),
-                  child: Center(
-                    child: Text(
-                      "00:00:00",
-                      style: Theme.of(context).textTheme.displayLarge,
-                    ),
-                  ),
-                ),
-                IconButton.filledTonal(
-                        onPressed: enterFocusMode,
+                Hero(
+                  tag: 'timer',
+                  child: Column(
+                    children: [
+                      Container(
+                        padding: EdgeInsets.fromLTRB(0, 40, 0, 20),
+                        child: Center(
+                          child: Text(
+                            "00:00:00",
+                            style: Theme.of(context).textTheme.displayLarge,
+                          ),
+                        ),
+                      ),
+                      IconButton.filledTonal(
+                        onPressed: () {
+                          //Navigator.pushNamed(context, '/focus');
+                          Navigator.of(context).push(RollDownPageRoute(page: FocusPage(), appBarColor: Theme.of(context).colorScheme.inversePrimary));
+                        },
                         icon: Icon(Icons.play_arrow),
                         iconSize: 70,
                       ),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
-          
+
           Padding(
-            padding: EdgeInsetsGeometry.fromLTRB(10, 0, 0, 0), 
+            padding: EdgeInsetsGeometry.fromLTRB(10, 0, 0, 0),
             child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    'Friends',
-                    style: Theme.of(context).textTheme.headlineMedium,
-                  ),
-                ),
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'Friends',
+                style: Theme.of(context).textTheme.headlineMedium,
+              ),
+            ),
           ),
           Padding(
-            padding: EdgeInsetsGeometry.fromLTRB(10, 10, 10, 30), 
+            padding: EdgeInsetsGeometry.fromLTRB(10, 10, 10, 30),
             child: SizedBox(
               height: 260,
               child: ListView.separated(
