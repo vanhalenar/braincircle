@@ -1,6 +1,11 @@
 import 'package:brain_circle/widgets/friend_card_big.dart';
 import 'package:flutter/material.dart';
 
+import 'package:provider/provider.dart';
+import 'package:brain_circle/auth/auth_controller.dart';
+import 'package:brain_circle/auth/auth_gate.dart';
+import 'package:brain_circle/homepage.dart';
+
 class Home extends StatefulWidget {
   const Home({super.key});
 
@@ -12,6 +17,27 @@ class _HomeState extends State<Home> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+        appBar: AppBar(
+          title: const Text('Home'),
+          actions: [
+            IconButton(
+              tooltip: 'Sign out',
+              icon: const Icon(Icons.logout),
+              onPressed: () async {
+                await context.read<AuthController>().logout();
+                if (!context.mounted) return;
+
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(
+                    builder: (_) => const AuthGate(home: Homepage()),
+                  ),
+                  (_) => false,
+                );
+              },
+            ),
+          ],
+      ),
+
       body: Column(
         children: [
           Expanded(
