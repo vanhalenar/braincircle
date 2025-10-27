@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key});
+  static const List<String> names = ['Lesana', 'Mark', 'Nina', 'Teodor'];
 
   @override
   State<Home> createState() => _HomeState();
@@ -35,8 +36,14 @@ class _HomeState extends State<Home> {
                       ),
                       IconButton.filledTonal(
                         onPressed: () {
-                          //Navigator.pushNamed(context, '/focus');
-                          Navigator.of(context).push(RollDownPageRoute(page: FocusPage(), appBarColor: Theme.of(context).colorScheme.inversePrimary));
+                          Navigator.of(context).push(
+                            RollDownPageRoute(
+                              page: FocusPage(),
+                              appBarColor: Theme.of(
+                                context,
+                              ).colorScheme.inversePrimary,
+                            ),
+                          );
                         },
                         icon: Icon(Icons.play_arrow),
                         iconSize: 70,
@@ -60,13 +67,16 @@ class _HomeState extends State<Home> {
           ),
           Padding(
             padding: EdgeInsetsGeometry.fromLTRB(10, 10, 10, 30),
-            child: SizedBox(
-              height: 260,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                itemBuilder: (_, _) => FriendCardBig(),
-                separatorBuilder: (_, _) => Divider(indent: 10),
-                itemCount: 5,
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                spacing: 10,
+                children: [
+                  FriendCardBig(name: "Lesana"),
+                  FriendCardBig(name: "Mark", working: true,),
+                  FriendCardBig(name: "Nina"),
+                  FriendCardBig(name: "Teodor"),
+                ],
               ),
             ),
           ),
