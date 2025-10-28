@@ -37,7 +37,7 @@ class Goals extends StatelessWidget {
                 {
                   'title': 'Start Image Processing Project',
                   'visibility': 'Friends',
-                  'date': DateTime(2025, 11, 2, 18, 0),
+                  'date': DateTime(2025, 11, 2),
                 },
                 {
                   'title': 'Determine an idea for Database Systems Project',
@@ -57,7 +57,7 @@ class Goals extends StatelessWidget {
                 {
                   'title': 'Finish Image Processing project',
                   'visibility': 'Friends',
-                  'date': DateTime(2025, 11, 25, 12, 0),
+                  'date': DateTime(2025, 11, 25),
                 },
                 {
                   'title': 'Submit all assignments before deadline',
