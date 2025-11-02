@@ -29,33 +29,29 @@ class _HomepageState extends State<Homepage> {
             currentPageIndex = index;
           });
         },
-        children: [
-          Home(),
-          Goals(),
-          Statistics()
-        ],
+        children: [Home(), Goals(), Statistics()],
       ),
       bottomNavigationBar: NavigationBar(
-      destinations: [
-        NavigationDestination(icon: Icon(Icons.home), label: 'Home'),
-        NavigationDestination(icon: Icon(Icons.flag), label: 'Goals'),
-        NavigationDestination(
-          icon: Icon(Icons.stacked_bar_chart),
-          label: 'Statistics',
-        ),
-      ],
-      selectedIndex: currentPageIndex,
-      onDestinationSelected: (int index) {
-        setState(() {
-          currentPageIndex = index;
+        destinations: [
+          NavigationDestination(icon: Icon(Icons.home), label: 'Home'),
+          NavigationDestination(icon: Icon(Icons.flag), label: 'Goals'),
+          NavigationDestination(
+            icon: Icon(Icons.stacked_bar_chart),
+            label: 'Statistics',
+          ),
+        ],
+        selectedIndex: currentPageIndex,
+        onDestinationSelected: (int index) {
+          setState(() {
+            currentPageIndex = index;
             _pageController.animateToPage(
               index,
               duration: const Duration(milliseconds: 300),
               curve: Curves.easeInOut,
             );
-        });
-      },
-    ),
+          });
+        },
+      ),
     );
   }
 }
