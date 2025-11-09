@@ -46,24 +46,28 @@ class FirebaseAuthRepository {
       UserCredential? cred;
 
       if (kIsWeb) {
+        // Web: Firebase popup
         final provider = GoogleAuthProvider()
           ..addScope('email')
           ..addScope('profile');
         cred = await _auth.signInWithPopup(provider);
       } else {
-        final googleSignIn = GoogleSignIn(
-          scopes: const ['email', 'profile'],
+        // Mobile/desktop: google_sign_in v7 style
+        final signIn = GoogleSignIn.instance;
+
+        await signIn.initialize();
+        await signIn.signOut(); // optional: force account picker
+
+        final account = await signIn.authenticate(
+          scopeHint: const ['email', 'profile'],
         );
 
-        final googleUser = await googleSignIn.signIn();
-        if (googleUser == null) {
-          return false;
-        }
+        // v7: authentication is sync and only has idToken
+        final googleAuth = account.authentication;
 
-        final googleAuth = await googleUser.authentication;
         final oAuthCred = GoogleAuthProvider.credential(
-          accessToken: googleAuth.accessToken,
           idToken: googleAuth.idToken,
+          // no accessToken here in v7
         );
 
         cred = await _auth.signInWithCredential(oAuthCred);
@@ -202,6 +206,60 @@ class FirebaseAuthRepository {
 
   Future<void> sendPasswordReset(String email) =>
       _auth.sendPasswordResetEmail(email: email);
+
+  Future<Map<String, dynamic>?> getCurrentProfile() async {
+    final user = _auth.currentUser;
+    final email = user?.email;
+    if (email == null) return null;
+
+    final profiles = await _readProfiles();
+    final raw = profiles[email];
+    if (raw is Map<String, dynamic>) return raw;
+    return null;
+  }
+
+  Future<void> updateProfile({
+    String? displayName,
+    DateTime? birthDate,
+  }) async {
+    final user = _auth.currentUser;
+    final email = user?.email;
+    if (email == null) return;
+
+    // Update Firebase display name
+    if (displayName != null && displayName.isNotEmpty) {
+      await user!.updateDisplayName(displayName);
+    }
+
+    // Update local profile
+    final profiles = await _readProfiles();
+    final raw = (profiles[email] as Map<String, dynamic>?) ?? {};
+    profiles[email] = {
+      ...raw,
+      if (displayName != null) 'displayName': displayName,
+      if (birthDate != null) 'birthDate': birthDate.millisecondsSinceEpoch,
+    };
+    await _writeProfiles(profiles);
+  }
+
+  Future<void> deleteAccount() async {
+    final user = _auth.currentUser;
+    final email = user?.email;
+    if (user == null || email == null) return;
+
+    // Drop local profile + lockout info
+    final profiles = await _readProfiles();
+    profiles.remove(email);
+    await _writeProfiles(profiles);
+
+    final lockout = await _readLockout();
+    lockout.remove(email);
+    await _writeLockout(lockout);
+
+    // Delete from Firebase + clear session
+    await user.delete();
+    await logout();
+  }
 
   String _genRecoveryCode() {
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';

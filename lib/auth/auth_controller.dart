@@ -60,4 +60,31 @@ class AuthController extends ChangeNotifier {
 
   // logout
   Future<void> logout() => _repo.logout();
+
+    Future<Map<String, dynamic>?> loadProfile() => _repo.getCurrentProfile();
+
+    Future<void> updateProfile({
+      String? displayName,
+      DateTime? birthDate,
+    }) async {
+      busy = true; notifyListeners();
+      try {
+        await _repo.updateProfile(
+          displayName: displayName,
+          birthDate: birthDate,
+        );
+      } finally {
+        busy = false; notifyListeners();
+      }
+    }
+
+    Future<void> deleteAccount() async {
+      busy = true; notifyListeners();
+      try {
+        await _repo.deleteAccount();
+      } finally {
+        busy = false; notifyListeners();
+      }
+    }
+
 }
