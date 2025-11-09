@@ -1,8 +1,3 @@
-import 'package:provider/provider.dart';
-import 'package:brain_circle/auth/auth_controller.dart';
-import 'package:brain_circle/auth/auth_gate.dart';
-import 'package:brain_circle/homepage.dart';
-
 import 'package:brain_circle/extra/roll_down_page_route.dart';
 import 'package:brain_circle/pages/focus_page.dart';
 import 'package:brain_circle/widgets/friend_card_big.dart';
@@ -20,22 +15,6 @@ class _HomeState extends State<Home> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-              title: const Text('Home'),
-              actions: [
-                IconButton(
-                  tooltip: 'Account',
-                  icon: const Icon(Icons.account_circle_outlined),
-                  onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => const AccountPage(),
-                      ),
-                    );
-                  },
-                ),
-              ],
-            ),
       body: Column(
         children: [
           Expanded(
