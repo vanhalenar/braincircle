@@ -18,15 +18,14 @@ class _RegisterPageState extends State<RegisterPage> {
   final _selfDescribeC = TextEditingController();
 
   DateTime? _dob;
-  bool _dobTouched = false;
-  bool _submitted = false;
 
-  String? _gender;
+  String? _gender; // female | male | non_binary | prefer_not | self
   bool _showSelfDescribe = false;
   bool _consent = false;
 
   bool _obscure = true;
   bool _success = false;
+  bool _submitted = false; // <-- track if "Create account" was pressed
   String? _error;
 
   @override
@@ -39,6 +38,7 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   String? _emailValidator(String? v) {
+    if (!_submitted) return null; // no error before first submit
     final s = v?.trim() ?? '';
     if (s.isEmpty) return 'Please enter your email';
     final ok = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(s);
@@ -47,19 +47,23 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   String? _passwordValidator(String? v) {
+    if (!_submitted) return null;
     final s = v ?? '';
     if (s.length < 6) return 'Password must be at least 6 characters';
     return null;
   }
 
   String? _dobValidator() {
+    if (!_submitted) return null;
     if (_dob == null) return 'Please select your date of birth';
-    final thirteen = DateTime.now().subtract(const Duration(days: 365 * 13 + 3));
+    final thirteen =
+        DateTime.now().subtract(const Duration(days: 365 * 13 + 3));
     if (_dob!.isAfter(thirteen)) return 'You must be at least 13 years old';
     return null;
   }
 
   String? _genderValidator(String? _) {
+    if (!_submitted) return null;
     if (_gender == null) return 'Please choose your gender';
     if (_gender == 'self' && _selfDescribeC.text.trim().isEmpty) {
       return 'Please describe your gender';
@@ -92,9 +96,10 @@ class _RegisterPageState extends State<RegisterPage> {
 
   Future<void> _submit() async {
     setState(() {
-      _submitted = true;
+      _submitted = true; // from now on, show validation errors
       _error = null;
     });
+
     if (!_formKey.currentState!.validate()) return;
 
     if (!_consent) {
@@ -134,8 +139,10 @@ class _RegisterPageState extends State<RegisterPage> {
                     children: [
                       const Icon(Icons.check_circle, size: 64),
                       const SizedBox(height: 12),
-                      Text('Account created!',
-                          style: Theme.of(context).textTheme.headlineSmall),
+                      Text(
+                        'Account created!',
+                        style: Theme.of(context).textTheme.headlineSmall,
+                      ),
                       const SizedBox(height: 8),
                       Text(
                         'We sent a verification email to ${_emailC.text.trim()}.\nVerify your email to sign in.',
@@ -150,12 +157,17 @@ class _RegisterPageState extends State<RegisterPage> {
                   )
                 : Form(
                     key: _formKey,
-                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    // only auto-validate after first submit
+                    autovalidateMode: _submitted
+                        ? AutovalidateMode.always
+                        : AutovalidateMode.disabled,
                     child: ListView(
                       shrinkWrap: true,
                       children: [
-                        Text('Let’s get you started',
-                            style: Theme.of(context).textTheme.headlineSmall),
+                        Text(
+                          'Let’s get you started',
+                          style: Theme.of(context).textTheme.headlineSmall,
+                        ),
                         const SizedBox(height: 16),
 
                         TextFormField(
@@ -168,19 +180,17 @@ class _RegisterPageState extends State<RegisterPage> {
                         ),
                         const SizedBox(height: 12),
 
+                        // DOB
                         InputDecorator(
                           decoration: InputDecoration(
                             labelText: 'Date of birth',
-                            errorText:
-                                (_dobTouched || _submitted) ? _dobValidator() : null,
+                            errorText: _dobValidator(),
                           ),
                           child: InkWell(
-                            onTap: () async {
-                              setState(() => _dobTouched = true);
-                              await _pickDob();
-                            },
+                            onTap: _pickDob,
                             child: Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              padding:
+                                  const EdgeInsets.symmetric(vertical: 12),
                               child: Text(
                                 _dob == null
                                     ? 'Select date'
@@ -211,9 +221,11 @@ class _RegisterPageState extends State<RegisterPage> {
                             suffixIcon: IconButton(
                               onPressed: () =>
                                   setState(() => _obscure = !_obscure),
-                              icon: Icon(
-                                  _obscure ? Icons.visibility : Icons.visibility_off),
-                              tooltip: _obscure ? 'Show password' : 'Hide password',
+                              icon: Icon(_obscure
+                                  ? Icons.visibility
+                                  : Icons.visibility_off),
+                              tooltip:
+                                  _obscure ? 'Show password' : 'Hide password',
                             ),
                           ),
                           validator: _passwordValidator,
@@ -234,15 +246,25 @@ class _RegisterPageState extends State<RegisterPage> {
                           value: _gender,
                           items: const [
                             DropdownMenuItem(
-                                value: 'female', child: Text('Female')),
-                            DropdownMenuItem(value: 'male', child: Text('Male')),
+                              value: 'female',
+                              child: Text('Female'),
+                            ),
                             DropdownMenuItem(
-                                value: 'non_binary', child: Text('Non-binary')),
+                              value: 'male',
+                              child: Text('Male'),
+                            ),
                             DropdownMenuItem(
-                                value: 'prefer_not',
-                                child: Text('Prefer not to say')),
+                              value: 'non_binary',
+                              child: Text('Non-binary'),
+                            ),
                             DropdownMenuItem(
-                                value: 'self', child: Text('Self-describe')),
+                              value: 'prefer_not',
+                              child: Text('Prefer not to say'),
+                            ),
+                            DropdownMenuItem(
+                              value: 'self',
+                              child: Text('Self-describe'),
+                            ),
                           ],
                           onChanged: (v) {
                             setState(() {
@@ -260,6 +282,7 @@ class _RegisterPageState extends State<RegisterPage> {
                               labelText: 'Describe your gender',
                             ),
                             validator: (v) {
+                              if (!_submitted) return null;
                               if (_gender == 'self' &&
                                   (v?.trim().isEmpty ?? true)) {
                                 return 'Please describe your gender';
@@ -275,15 +298,18 @@ class _RegisterPageState extends State<RegisterPage> {
                           onChanged: (v) =>
                               setState(() => _consent = v ?? false),
                           title: const Text(
-                              'I accept the Terms of Service and Privacy Policy'),
+                            'I accept the Terms of Service and Privacy Policy',
+                          ),
                           controlAffinity: ListTileControlAffinity.leading,
                           contentPadding: EdgeInsets.zero,
                         ),
 
                         if (_error != null) ...[
                           const SizedBox(height: 6),
-                          Text(_error!,
-                              style: const TextStyle(color: Colors.red)),
+                          Text(
+                            _error!,
+                            style: const TextStyle(color: Colors.red),
+                          ),
                         ],
 
                         const SizedBox(height: 12),
@@ -296,7 +322,8 @@ class _RegisterPageState extends State<RegisterPage> {
                                     height: 20,
                                     width: 20,
                                     child: CircularProgressIndicator(
-                                        strokeWidth: 2),
+                                      strokeWidth: 2,
+                                    ),
                                   )
                                 : const Text('Create account'),
                           ),

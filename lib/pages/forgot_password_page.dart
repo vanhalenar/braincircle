@@ -34,89 +34,128 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
-    setState(() { _busy = true; _error = null; });
+
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
 
     try {
-      await context.read<AuthController>().sendPasswordReset(_emailC.text.trim());
+      await context
+          .read<AuthController>()
+          .sendPasswordReset(_emailC.text.trim());
       setState(() => _sent = true);
-    } catch (e) {
-      setState(() => _error = 'Could not send reset email. Please try again.');
+    } catch (_) {
+      setState(
+        () => _error = 'Could not send reset email. Please try again.',
+      );
     } finally {
-      if (mounted) setState(() => _busy = false);
+      if (mounted) {
+        setState(() => _busy = false);
+      }
     }
+  }
+
+  Future<bool> _handleBack() async {
+    if (widget.onDone != null) {
+      widget.onDone!();
+      return false;
+    }
+    return true;
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Reset password')),
-      body: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 420),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: !_sent
-                ? Form(
-                    key: _formKey,
-                    child: Column(
+    return WillPopScope(
+      onWillPop: _handleBack,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Reset password'),
+          leading: widget.onDone == null
+              ? null
+              : IconButton(
+                  icon: const Icon(Icons.arrow_back),
+                  onPressed: widget.onDone,
+                ),
+        ),
+        body: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 420),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: !_sent
+                  ? Form(
+                      key: _formKey,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'Enter your email and we’ll send you a reset link.',
+                            style: Theme.of(context).textTheme.bodyLarge,
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 16),
+                          TextFormField(
+                            controller: _emailC,
+                            decoration: const InputDecoration(
+                              labelText: 'Email',
+                              hintText: 'you@example.com',
+                            ),
+                            keyboardType: TextInputType.emailAddress,
+                            autofillHints: const [AutofillHints.email],
+                            validator: _emailValidator,
+                            onFieldSubmitted: (_) => _submit(),
+                          ),
+                          const SizedBox(height: 12),
+                          if (_error != null)
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 8),
+                              child: Text(
+                                _error!,
+                                style: const TextStyle(color: Colors.red),
+                              ),
+                            ),
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              onPressed: _busy ? null : _submit,
+                              child: _busy
+                                  ? const SizedBox(
+                                      height: 20,
+                                      width: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                      ),
+                                    )
+                                  : const Text('Send reset email'),
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  : Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
+                        const Icon(Icons.mark_email_read, size: 64),
+                        const SizedBox(height: 12),
                         Text(
-                          'Enter your email and we’ll send you a reset link.',
-                          style: Theme.of(context).textTheme.bodyLarge,
+                          'Check your inbox',
+                          style: Theme.of(context).textTheme.headlineSmall,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'We’ve sent a password reset link to ${_emailC.text.trim()}.\n'
+                          'If you don’t see it, check your spam folder.',
                           textAlign: TextAlign.center,
                         ),
                         const SizedBox(height: 16),
-                        TextFormField(
-                          controller: _emailC,
-                          decoration: const InputDecoration(
-                            labelText: 'Email',
-                            hintText: 'you@example.com',
-                          ),
-                          keyboardType: TextInputType.emailAddress,
-                          autofillHints: const [AutofillHints.email],
-                          validator: _emailValidator,
-                          onFieldSubmitted: (_) => _submit(),
-                        ),
-                        const SizedBox(height: 12),
-                        if (_error != null)
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 8),
-                            child: Text(_error!, style: const TextStyle(color: Colors.red)),
-                          ),
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton(
-                            onPressed: _busy ? null : _submit,
-                            child: _busy
-                                ? const SizedBox(
-                                    height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                                : const Text('Send reset email'),
-                          ),
+                        ElevatedButton(
+                          onPressed: widget.onDone,
+                          child: const Text('Back to sign in'),
                         ),
                       ],
                     ),
-                  )
-                : Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Icons.mark_email_read, size: 64),
-                      const SizedBox(height: 12),
-                      Text('Check your inbox',
-                          style: Theme.of(context).textTheme.headlineSmall),
-                      const SizedBox(height: 8),
-                      Text(
-                        'We’ve sent a password reset link to ${_emailC.text.trim()}.\n'
-                        'If you don’t see it, check your spam folder.',
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 16),
-                      ElevatedButton(
-                        onPressed: widget.onDone,
-                        child: const Text('Back to sign in'),
-                      ),
-                    ],
-                  ),
+            ),
           ),
         ),
       ),

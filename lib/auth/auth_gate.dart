@@ -28,15 +28,7 @@ class _AuthGateState extends State<AuthGate> {
     switch (_page) {
       case 1: return RegisterPage(onDone: ()=> setState(()=> _page = 0));
       case 2: return ForgotPasswordPage(onDone: ()=> setState(()=> _page = 0));
-      case 3: return Scaffold(
-        body: widget.home,
-        appBar: AppBar(actions: [
-          IconButton(icon: const Icon(Icons.logout), onPressed: () async {
-            await context.read<AuthController>().logout();
-            setState(()=> _page = 0);
-          })
-        ]),
-      );
+      case 3: return widget.home;
       default: return LoginPage(
         onLoggedIn: ()=> setState(()=> _page = 3),
         onGoRegister: ()=> setState(()=> _page = 1),

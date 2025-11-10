@@ -2,6 +2,7 @@ import 'package:brain_circle/extra/roll_down_page_route.dart';
 import 'package:brain_circle/pages/focus_page.dart';
 import 'package:brain_circle/widgets/friend_card_big.dart';
 import 'package:flutter/material.dart';
+import 'package:brain_circle/pages/account_page.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key});
