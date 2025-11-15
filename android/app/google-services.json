@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "736275913929",
+    "project_id": "braincircle-2025-tama",
+    "storage_bucket": "braincircle-2025-tama.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:736275913929:android:cae2180b81360f7c6fc118",
+        "android_client_info": {
+          "package_name": "com.example.brain_circle"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "736275913929-3ufh9nn7jv3sp08609a1ra6m3fpvcdi6.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.brain_circle",
+            "certificate_hash": "60f2ff88cc6bea529fd82563bf2f3352be23e07b"
+          }
+        },
+        {
+          "client_id": "736275913929-edh9v8kgg38oe7b2pbsl10dgpihc4aee.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCyKlcfhXoFezBgjeJ2an2XewwQs1U0cuM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "736275913929-edh9v8kgg38oe7b2pbsl10dgpihc4aee.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
