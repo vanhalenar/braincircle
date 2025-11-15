@@ -1,6 +1,12 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <!-- Permission for running a foreground service -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <!-- foregroundServiceType: dataSync -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+
+    <!-- foregroundServiceType: remoteMessaging -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_REMOTE_MESSAGING" />
+
     <application
         android:label="brain_circle"
         android:name="${applicationName}"
@@ -36,7 +42,7 @@
        <service
           android:name="com.pravera.flutter_foreground_task.service.ForegroundService"
           android:exported="false"
-          android:foregroundServiceType="location" />
+          android:foregroundServiceType="location|dataSync|remoteMessaging" />
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and

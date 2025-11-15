@@ -1,6 +1,7 @@
 import 'package:brain_circle/widgets/friend_card_big.dart';
-import 'package:brain_circle/utils/focus_timer.dart';
+// import 'package:brain_circle/utils/focus_timer.dart';
 import 'package:flutter/material.dart';
+import 'package:brain_circle/utils/foreground_timer.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -10,7 +11,13 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  final FocusTimer _focusTimer = FocusTimer();
+  final controller = ForegroundTimerController.instance;
+
+  @override
+  void initState() {
+    super.initState();
+    controller.startListening();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -25,18 +32,19 @@ class _HomeState extends State<Home> {
                   padding: EdgeInsets.fromLTRB(0, 40, 0, 20),
                   child: Center(
                     child: ValueListenableBuilder<Duration>(
-                      valueListenable: _focusTimer.elapsed,
-                      builder: (_, elapsed, __) => Text(
-                        _focusTimer.formatDuration(elapsed),
+                        valueListenable: controller.elapsed,
+                        builder: (_, elapsed, __) => Text(
+                          // local formatting
+                          '${elapsed.inHours.toString().padLeft(2, '0')}:${(elapsed.inMinutes % 60).toString().padLeft(2, '0')}:${(elapsed.inSeconds % 60).toString().padLeft(2, '0')}',
                         style: Theme.of(context).textTheme.displayLarge,
                       ),
                     ),
                   ),
                 ),
                 ValueListenableBuilder<bool>(
-                  valueListenable: _focusTimer.running,
+                  valueListenable: controller.running,
                   builder: (_, running, __) => IconButton.filledTonal(
-                    onPressed: _focusTimer.toggle,
+                    onPressed: controller.toggle,
                     icon: Icon(running ? Icons.pause : Icons.play_arrow),
                     iconSize: 70,
                   ),
@@ -75,7 +83,8 @@ class _HomeState extends State<Home> {
 
   @override
   void dispose() {
-    _focusTimer.dispose();
+    // stop listening when the widget is disposed
+    controller.dispose();
     super.dispose();
   }
 }

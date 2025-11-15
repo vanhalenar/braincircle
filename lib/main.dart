@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'homepage.dart';
-import 'utils/foreground_task_handler.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -18,6 +17,10 @@ void main() {
         resPrefix: ResourcePrefix.ic,
         name: 'launcher',
       ),
+      buttons: [
+        const NotificationButton(id: 'play', text: 'Play'),
+        const NotificationButton(id: 'pause', text: 'Pause'),
+      ],
     ),
     iosNotificationOptions: const IOSNotificationOptions(),
     foregroundTaskOptions: const ForegroundTaskOptions(
@@ -28,7 +31,7 @@ void main() {
     ),
   );
 
-  FlutterForegroundTask.setTaskHandler(ForegroundTimerHandler());
+  // FlutterForegroundTask.setTaskHandler(ForegroundTimerHandler());
 
   runApp(const MyApp());
 }
