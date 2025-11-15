@@ -1,89 +1,69 @@
 import 'dart:async';
-import 'dart:io';
-
 import 'package:flutter/foundation.dart';
-import 'package:flutter_foreground_task/flutter_foreground_task.dart';
+import 'chronometer_notification.dart';
 
-
-/// FocusTimer encapsulates a simple stopwatch-style timer.
+/// FocusTimer encapsulates a stopwatch-style timer using native chronometer notification.
 ///
 /// It exposes two ValueNotifiers:
 /// - elapsed: Duration since start (pauses when stopped)
 /// - running: bool whether the timer is currently running
+///
+/// Features:
+/// - Single timer running in main isolate
+/// - Native Android chronometer notification (auto-increments on native side)
+/// - No background service needed
+/// - Notification updates only on state changes (play/pause/reset)
 class FocusTimer {
   final ValueNotifier<Duration> elapsed = ValueNotifier(Duration.zero);
   final ValueNotifier<bool> running = ValueNotifier(false);
 
   Timer? _timer;
+  bool _disposed = false;
 
   /// Start the timer. If already running, this does nothing.
-  void start() {
+  Future<void> start() async {
     if (running.value) return;
-    // NOTE: start the foreground service/task here so the notification keeps
-    // updating while the app is backgrounded. Example (depends on plugin API):
-    if (Platform.isAndroid) {
-      try {
-        FlutterForegroundTask.startService(
-          notificationTitle: 'Focus timer running',
-          notificationText: formatDuration(elapsed.value),
-        );
-      } catch (e) {
-        // If the plugin isn't available (MissingPluginException) we'll still
-        // update the UI while the app is foregrounded. The catch prevents the
-        // app from pausing on the exception.
-        debugPrint('Foreground start failed: $e');
-      }
-    }
-    // For now, we start a local timer to update UI while app is foregrounded.
-    _timer = Timer.periodic(const Duration(seconds: 1), (_) async {
-      elapsed.value += const Duration(seconds: 1);
+    _timer?.cancel();
+    running.value = true;
 
-      // Update notification with current elapsed time.
-      if (Platform.isAndroid) {
-        try {
-          await FlutterForegroundTask.updateService(
-            notificationTitle: 'Focus timer running',
-            notificationText: formatDuration(elapsed.value),
-          );
-        } catch (e) {
-          debugPrint('Foreground update failed: $e');
-        }
+    // Show running notification with native chronometer
+    // The chronometer auto-increments on the native side without Dart loop
+    await ChronometerNotification.showRunning(elapsed.value.inSeconds);
+
+    // Single timer: increment local counter every second
+    // The native chronometer display handles the visual increment independently
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (!_disposed) {
+        elapsed.value += const Duration(seconds: 1);
       }
     });
-
-    running.value = true;
   }
 
   /// Pause the timer. Keeps elapsed value.
-  void pause() {
+  Future<void> pause() async {
     if (!running.value) return;
-    // NOTE: stop the foreground service/task here so background notification
-    // updates stop. Example (depends on plugin API):
-    if (Platform.isAndroid) {
-      try {
-        FlutterForegroundTask.stopService();
-      } catch (e) {
-        debugPrint('Foreground stop failed: $e');
-      }
-    }
-
     _timer?.cancel();
-    _timer = null;
     running.value = false;
+
+    // Show paused notification with static time (stops chronometer)
+    await ChronometerNotification.showPaused(elapsed.value.inSeconds);
   }
 
   /// Toggle between start and pause.
-  void toggle() {
+  Future<void> toggle() async {
     if (running.value) {
-      pause();
+      await pause();
     } else {
-      start();
+      await start();
     }
   }
 
-  /// Reset elapsed to zero. Does not change running state.
-  void reset() {
+  /// Reset elapsed to zero and hide notification.
+  Future<void> reset() async {
+    _timer?.cancel();
+    running.value = false;
     elapsed.value = Duration.zero;
+    await ChronometerNotification.cancel();
   }
 
   String formatDuration(Duration d) {
@@ -96,6 +76,7 @@ class FocusTimer {
 
   /// Dispose internal resources.
   void dispose() {
+    _disposed = true;
     _timer?.cancel();
     elapsed.dispose();
     running.dispose();

@@ -36,7 +36,7 @@ class _HomeState extends State<Home> {
                 ValueListenableBuilder<bool>(
                   valueListenable: _focusTimer.running,
                   builder: (_, running, __) => IconButton.filledTonal(
-                    onPressed: _focusTimer.toggle,
+                    onPressed: () => _focusTimer.toggle(),
                     icon: Icon(running ? Icons.pause : Icons.play_arrow),
                     iconSize: 70,
                   ),

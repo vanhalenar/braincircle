@@ -1,6 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <!-- Permission for running a foreground service -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <!-- Permission for posting notifications -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <application
         android:label="brain_circle"
         android:name="${applicationName}"
@@ -37,6 +39,12 @@
           android:name="com.pravera.flutter_foreground_task.service.ForegroundService"
           android:exported="false"
           android:foregroundServiceType="location" />
+       
+       <!-- Broadcast receiver for timer notification actions -->
+       <receiver
+          android:name=".TimerActionReceiver"
+          android:exported="false">
+       </receiver>
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and
