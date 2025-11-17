@@ -59,22 +59,12 @@ class TimerNotificationManager(private val context: Context) {
         )
 
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setContentTitle("Focus Timer")
-            .setContentText("Running")
+            .setContentTitle("Studying!")
+            .setContentText("Timer running")
             .setSmallIcon(android.R.drawable.ic_dialog_info)
             .setWhen(baseTime)
             .setUsesChronometer(true)
             .setOngoing(true)
-            .addAction(
-                android.R.drawable.ic_media_pause,
-                "Pause",
-                playPausePendingIntent
-            )
-            .addAction(
-                android.R.drawable.ic_menu_delete,
-                "Reset",
-                resetPendingIntent
-            )
             .setAutoCancel(false)
             .build()
 
@@ -103,22 +93,12 @@ class TimerNotificationManager(private val context: Context) {
         )
 
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setContentTitle("Focus Timer")
-            .setContentText("Paused - ${formatTime(elapsedSeconds)}")
+            .setContentTitle("Chilling!")
+            .setContentText("Timer paused - ${formatTime(elapsedSeconds)}")
             .setSmallIcon(android.R.drawable.ic_dialog_info)
             .setUsesChronometer(false)
-            .setOngoing(true)
-            .addAction(
-                android.R.drawable.ic_media_play,
-                "Play",
-                playPendingIntent
-            )
-            .addAction(
-                android.R.drawable.ic_menu_delete,
-                "Reset",
-                resetPendingIntent
-            )
-            .setAutoCancel(false)
+            .setOngoing(false)
+            .setAutoCancel(true)
             .build()
 
         notificationManager.notify(NOTIFICATION_ID, notification)

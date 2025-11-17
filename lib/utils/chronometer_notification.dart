@@ -60,4 +60,16 @@ class ChronometerNotification {
       print('[ChronometerNotification] Error canceling notification: $e');
     }
   }
+
+  /// Returns true when the device is currently screen-off or keyguard-locked.
+  /// Useful to distinguish user locking the phone vs pressing Home (background).
+  static Future<bool> isScreenLockedOrOff() async {
+    try {
+      final res = await _channel.invokeMethod('isScreenLockedOrOff');
+      return res == true;
+    } catch (e) {
+      print('[ChronometerNotification] Error checking screen state: $e');
+      return false;
+    }
+  }
 }

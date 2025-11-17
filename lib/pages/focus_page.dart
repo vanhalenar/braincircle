@@ -14,10 +14,18 @@ class _FocusPageState extends State<FocusPage> {
   @override
   void initState() {
     super.initState();
-    // Get the singleton instance
     _focusTimer = FocusTimer.instance;
-    // Start the timer when entering focus page
     _focusTimer.start();
+    // If the timer gets paused (by lifecycle or notification), close this page
+    _focusTimer.running.addListener(_onRunningChanged);
+  }
+
+  void _onRunningChanged() {
+    if (!_focusTimer.running.value) {
+      if (mounted) {
+        Navigator.of(context).maybePop();
+      }
+    }
   }
 
   @override
@@ -47,11 +55,7 @@ class _FocusPageState extends State<FocusPage> {
                       ),
                       IconButton.filledTonal(
                         onPressed: () async {
-                          // Pause the timer and return to home
                           await _focusTimer.pause();
-                          if (mounted) {
-                            Navigator.of(context).pop();
-                          }
                         },
                         icon: Icon(Icons.pause),
                         iconSize: 70,
@@ -65,5 +69,11 @@ class _FocusPageState extends State<FocusPage> {
         ],
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _focusTimer.running.removeListener(_onRunningChanged);
+    super.dispose();
   }
 }
