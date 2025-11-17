@@ -11,7 +11,7 @@ import 'package:brain_circle/repo/user_repository.dart';
 class Home extends StatefulWidget {
   Home({super.key});
 
-  final userRepository = UserRepository();
+  final userRepository = UserRepository.instance;
   static const List<String> names = ['Lesana', 'Mark', 'Nina', 'Teodor'];
 
   @override
@@ -118,7 +118,7 @@ class _HomeState extends State<Home> {
                     spacing: 10,
                     children: friendDocs.map((doc) {
                       final data = doc.data() as Map<String, dynamic>;
-                      return FriendCardBig(name: data['name'], working: data['studying'], userID: doc.id, data: data);
+                      return FriendCardBig(name: data['name'], working: data['studying'], userID: doc.id);
                     }).toList(),
                   ),
                 ),

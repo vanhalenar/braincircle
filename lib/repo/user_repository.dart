@@ -2,6 +2,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class UserRepository {
+  UserRepository._();
+  static final UserRepository _instance = UserRepository._();
+  static UserRepository get instance {
+    return _instance;
+  }
+
   final user = FirebaseAuth.instance.currentUser;
   final users = FirebaseFirestore.instance.collection('users');
 
@@ -32,7 +38,7 @@ class UserRepository {
       int totalSeconds = 0;
 
       for (var doc in snapshot.docs) {
-        final data = doc.data() as Map<String, dynamic>;
+        final data = doc.data();
 
         final start = (data['started'] as Timestamp).toDate();
         final end = (data['finished'] as Timestamp).toDate();
