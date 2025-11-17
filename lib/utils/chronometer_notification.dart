@@ -7,7 +7,6 @@ class ChronometerNotification {
 
   static Function(String action)? _onTimerAction;
 
-  /// Initialize the notification handler (call this once in main()).
   static Future<void> initialize(Function(String action) onAction) async {
     _onTimerAction = onAction;
     _channel.setMethodCallHandler((call) async {
@@ -20,49 +19,36 @@ class ChronometerNotification {
     });
   }
 
-  /// Show a running timer notification with chronometer.
-  /// The notification will display an increasing timer without any Dart code running.
-  /// [elapsedSeconds] is the starting point for the chronometer.
+  /// The notification will display an increasing timer
   static Future<void> showRunning(int elapsedSeconds) async {
     try {
-      print('[ChronometerNotification] Calling showRunningTimer with $elapsedSeconds seconds');
       await _channel.invokeMethod('showRunningTimer', {
         'elapsedSeconds': elapsedSeconds,
       });
-      print('[ChronometerNotification] showRunningTimer succeeded');
     } catch (e) {
       print('[ChronometerNotification] Error showing running timer: $e');
     }
   }
 
-  /// Show a paused timer notification.
   /// Stops the chronometer and displays the elapsed time as static text.
-  /// [elapsedSeconds] is the total elapsed time to display.
   static Future<void> showPaused(int elapsedSeconds) async {
     try {
-      print('[ChronometerNotification] Calling showPausedTimer with $elapsedSeconds seconds');
       await _channel.invokeMethod('showPausedTimer', {
         'elapsedSeconds': elapsedSeconds,
       });
-      print('[ChronometerNotification] showPausedTimer succeeded');
     } catch (e) {
       print('[ChronometerNotification] Error showing paused timer: $e');
     }
   }
 
-  /// Cancel and remove the notification.
   static Future<void> cancel() async {
     try {
-      print('[ChronometerNotification] Calling cancelNotification');
       await _channel.invokeMethod('cancelNotification');
-      print('[ChronometerNotification] cancelNotification succeeded');
     } catch (e) {
       print('[ChronometerNotification] Error canceling notification: $e');
     }
   }
 
-  /// Returns true when the device is currently screen-off or keyguard-locked.
-  /// Useful to distinguish user locking the phone vs pressing Home (background).
   static Future<bool> isScreenLockedOrOff() async {
     try {
       final res = await _channel.invokeMethod('isScreenLockedOrOff');
