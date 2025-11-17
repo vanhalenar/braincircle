@@ -1,8 +1,8 @@
 import 'package:brain_circle/extra/roll_down_page_route.dart';
 import 'package:brain_circle/pages/focus_page.dart';
+import 'package:brain_circle/utils/focus_timer.dart';
 import 'package:brain_circle/widgets/friend_card_big.dart';
 import 'package:flutter/material.dart';
-import 'package:brain_circle/pages/account_page.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -13,6 +13,14 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
+  late FocusTimer _focusTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _focusTimer = FocusTimer.instance;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -29,9 +37,12 @@ class _HomeState extends State<Home> {
                       Container(
                         padding: EdgeInsets.fromLTRB(0, 40, 0, 20),
                         child: Center(
-                          child: Text(
-                            "00:00:00",
-                            style: Theme.of(context).textTheme.displayLarge,
+                          child: ValueListenableBuilder<Duration>(
+                            valueListenable: _focusTimer.elapsed,
+                            builder: (_, elapsed, __) => Text(
+                              _focusTimer.formatDuration(elapsed),
+                              style: Theme.of(context).textTheme.displayLarge,
+                            ),
                           ),
                         ),
                       ),
