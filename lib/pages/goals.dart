@@ -37,12 +37,12 @@ class Goals extends StatelessWidget {
                 {
                   'title': 'Start Image Processing Project',
                   'visibility': 'Friends',
-                  'date': DateTime(2025, 11, 2),
+                  'date': DateTime(2025, 10, 27),
                 },
                 {
                   'title': 'Determine an idea for Database Systems Project',
                   'visibility': 'Private',
-                  'date': DateTime(2025, 11, 3),
+                  'date': DateTime(2025, 10, 31),
                 },
               ],
             ),
@@ -52,17 +52,17 @@ class Goals extends StatelessWidget {
                 {
                   'title': 'Finish PDI project',
                   'visibility': 'Everyone',
-                  'date': DateTime(2025, 11, 15),
+                  'date': DateTime(2025, 10, 15),
                 },
                 {
                   'title': 'Finish Image Processing project',
                   'visibility': 'Friends',
-                  'date': DateTime(2025, 11, 25),
+                  'date': DateTime(2025, 10, 25),
                 },
                 {
                   'title': 'Submit all assignments before deadline',
                   'visibility': 'Private',
-                  'date': DateTime(2025, 11, 28),
+                  'date': DateTime(2025, 10, 31),
                 },
               ],
             ),
