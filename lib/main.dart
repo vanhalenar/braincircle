@@ -73,9 +73,9 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.lightGreen),
         ),
-        home: AuthGate(home: const Homepage()),
+        home: AuthGate(home: Homepage()),
         routes: {
-          '/homepage': (context) => const Homepage(),
+          '/homepage': (context) => Homepage(),
           '/focus': (context) => const FocusPage(),
         },
       ),

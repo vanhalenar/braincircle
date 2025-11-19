@@ -234,7 +234,7 @@ class _AccountPageState extends State<AccountPage> {
 
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(
-          builder: (_) => const AuthGate(home: Homepage()),
+          builder: (_) => AuthGate(home: Homepage()),
         ),
         (_) => false,
       );
@@ -264,7 +264,7 @@ class _AccountPageState extends State<AccountPage> {
 
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(
-        builder: (_) => const AuthGate(home: Homepage()),
+        builder: (_) => AuthGate(home: Homepage()),
       ),
       (_) => false,
     );
