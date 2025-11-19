@@ -76,7 +76,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         home: AuthGate(home: Homepage()),
         routes: {
           '/homepage': (context) => Homepage(),
-          '/focus': (context) => const FocusPage(),
+          '/focus': (context) => FocusPage(),
         },
       ),
     );

@@ -110,16 +110,19 @@ class _HomeState extends State<Home> {
                 return Text("No data");
               }
               final friendDocs = asyncSnapshot.data!;
-              return Padding(
-                padding: EdgeInsetsGeometry.fromLTRB(10, 10, 10, 30),
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    spacing: 10,
-                    children: friendDocs.map((doc) {
-                      final data = doc.data() as Map<String, dynamic>;
-                      return FriendCardBig(name: data['name'], working: data['studying'], userID: doc.id);
-                    }).toList(),
+              return Hero(
+                tag: 'friends',
+                child: Padding(
+                  padding: EdgeInsetsGeometry.fromLTRB(10, 10, 10, 30),
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      spacing: 10,
+                      children: friendDocs.map((doc) {
+                        final data = doc.data() as Map<String, dynamic>;
+                        return FriendCardBig(name: data['name'], working: data['studying'], userID: doc.id);
+                      }).toList(),
+                    ),
                   ),
                 ),
               );
