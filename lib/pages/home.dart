@@ -3,7 +3,6 @@ import 'package:brain_circle/pages/focus_page.dart';
 import 'package:brain_circle/utils/focus_timer.dart';
 import 'package:brain_circle/widgets/friend_card_big.dart';
 import 'package:flutter/material.dart';
-import 'package:brain_circle/pages/account_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:brain_circle/repo/user_repository.dart';
@@ -21,10 +20,9 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   late FocusTimer _focusTimer;
 
-  @override
   final db = FirebaseFirestore.instance;
   final user = FirebaseAuth.instance.currentUser;
-  late final userDoc;
+  late final dynamic userDoc;
   Map<String, dynamic>? userData;
 
   @override

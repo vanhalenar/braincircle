@@ -49,4 +49,33 @@ class UserRepository {
       return totalSeconds;
     });
   }
+
+  Stream<int> getTotalStudyTimeToday(String userId) {
+    final collection = FirebaseFirestore.instance.collection('studyTimes');
+    final now = DateTime.now();
+    final startOfDay = DateTime(now.year, now.month, now.day);
+    final endOfDay = startOfDay.add(const Duration(days: 1));
+    return collection
+        .where('userID', isEqualTo: userId)
+        .where(
+          'started',
+          isGreaterThanOrEqualTo: Timestamp.fromDate(startOfDay),
+        )
+        .where('started', isGreaterThanOrEqualTo: Timestamp.fromDate(endOfDay))
+        .snapshots()
+        .map((snapshot) {
+          int totalSeconds = 0;
+
+          for (var doc in snapshot.docs) {
+            final data = doc.data();
+
+            final start = (data['started'] as Timestamp).toDate();
+            final end = (data['finished'] as Timestamp).toDate();
+
+            totalSeconds += end.difference(start).inSeconds;
+          }
+
+          return totalSeconds;
+        });
+  }
 }
