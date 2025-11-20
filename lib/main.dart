@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -17,9 +18,8 @@ Future<void> main() async {
   await ChronometerNotification.initialize((action) {});
 
   // Make sure the default Firebase app exists before using FirebaseAuth
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  await FirebaseFirestore.instance.clearPersistence();
 
   runApp(const MyApp());
 }

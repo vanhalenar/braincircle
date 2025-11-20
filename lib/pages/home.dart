@@ -28,13 +28,24 @@ class _HomeState extends State<Home> {
   @override
   void initState() {
     super.initState();
-    _focusTimer = FocusTimer.instance;
+    _initTimer();
     userDoc = db.collection('users').doc(user!.uid);
     userDoc.get().then((snapshot) {
       setState(() {
         userData = snapshot.data();
       });
     });
+  }
+
+  Future<void> _initTimer() async {
+    _focusTimer = FocusTimer.instance;
+
+    final initialSeconds = await widget.userRepository
+        .getTotalStudyTimeToday(user!.uid)
+        .first;
+
+    print("initial seconds: $initialSeconds");
+    _focusTimer.elapsed.value = Duration(seconds: initialSeconds);
   }
 
   @override
@@ -118,7 +129,11 @@ class _HomeState extends State<Home> {
                       spacing: 10,
                       children: friendDocs.map((doc) {
                         final data = doc.data() as Map<String, dynamic>;
-                        return FriendCardBig(name: data['name'], working: data['studying'], userID: doc.id);
+                        return FriendCardBig(
+                          name: data['name'],
+                          working: data['studying'],
+                          userID: doc.id,
+                        );
                       }).toList(),
                     ),
                   ),

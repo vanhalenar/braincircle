@@ -52,7 +52,8 @@ class UserRepository {
 
   Stream<int> getTotalStudyTimeToday(String userId) {
     final collection = FirebaseFirestore.instance.collection('studyTimes');
-    final now = DateTime.now();
+    final now = DateTime.now().toUtc();
+    print(now);
     final startOfDay = DateTime(now.year, now.month, now.day);
     final endOfDay = startOfDay.add(const Duration(days: 1));
     return collection
@@ -61,8 +62,8 @@ class UserRepository {
           'started',
           isGreaterThanOrEqualTo: Timestamp.fromDate(startOfDay),
         )
-        .where('started', isGreaterThanOrEqualTo: Timestamp.fromDate(endOfDay))
-        .snapshots()
+        .where('started', isLessThan: Timestamp.fromDate(endOfDay))
+        .snapshots(includeMetadataChanges: false)
         .map((snapshot) {
           int totalSeconds = 0;
 
@@ -70,7 +71,9 @@ class UserRepository {
             final data = doc.data();
 
             final start = (data['started'] as Timestamp).toDate();
+            print("start: $start");
             final end = (data['finished'] as Timestamp).toDate();
+            print("end: $end");
 
             totalSeconds += end.difference(start).inSeconds;
           }

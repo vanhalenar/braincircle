@@ -59,6 +59,10 @@ class FocusTimer {
     final s = d.inSeconds.remainder(60);
     return "${two(h)}:${two(m)}:${two(s)}";
   }
+  
+  void setInitialDuration(Duration d) {
+    elapsed.value = d;
+  }
 
   void dispose() {
     _disposed = true;
