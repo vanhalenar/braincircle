@@ -1,8 +1,10 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:brain_circle/auth/auth_controller.dart';
@@ -25,6 +27,11 @@ class _AccountPageState extends State<AccountPage> {
   bool _savingProfile = false;
   bool _sendingResetLink = false;
   bool _deleting = false;
+
+  final ImagePicker _picker = ImagePicker();
+  File? _profileImage;
+  double? _imageAspectRatio; // width / height
+
 
   String? _error;
   String? _info;
@@ -270,6 +277,54 @@ class _AccountPageState extends State<AccountPage> {
     );
   }
 
+  void _showImageSourceDialog() {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.photo_library),
+                title: const Text("Select from gallery"),
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickImage(ImageSource.gallery);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.camera_alt),
+                title: const Text("Take a picture"),
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickImage(ImageSource.camera);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _pickImage(ImageSource source) async {
+    final XFile? file = await _picker.pickImage(source: source);
+    if (file != null) {
+      final bytes = await file.readAsBytes();
+
+      // Získání velikosti obrázku
+      final image = await decodeImageFromList(bytes);
+      final ratio = image.width / image.height;
+
+      setState(() {
+        _profileImage = File(file.path);
+        _imageAspectRatio = ratio;
+      });
+    }
+  }
+  
+
   @override
   Widget build(BuildContext context) {
     final user = _user;
@@ -302,6 +357,56 @@ class _AccountPageState extends State<AccountPage> {
                         ),
                         const SizedBox(height: 8),
                       ],
+
+                      AspectRatio(
+                        aspectRatio: _imageAspectRatio ?? 1, // 1 = fallback (čtverec)
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(20),
+                              child: Container(
+                                width: double.infinity,
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[300],
+                                  image: _profileImage != null
+                                      ? DecorationImage(
+                                          image: FileImage(_profileImage!),
+                                          fit: BoxFit.cover,
+                                        )
+                                      : null,
+                                ),
+                              child: _profileImage == null
+                                  ? const Center(
+                                      child: Icon(
+                                        Icons.person,
+                                        size: 80,
+                                        color: Colors.white70,
+                                      ),
+                                    )
+                                  : null,
+                            ),
+                          ),
+
+                            // Change profile photo button
+                            Positioned(
+                              left: 16,
+                              bottom: 16,
+                              child: CircleAvatar(
+                                radius: 24,
+                                backgroundColor: ColorScheme.fromSeed(seedColor: Colors.lightGreen).primary,
+                                child: IconButton(
+                                  icon: const Icon(Icons.edit, color: Colors.white),
+                                  onPressed: _showImageSourceDialog,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 24),
+
 
                       // Profile section
                       Text(
