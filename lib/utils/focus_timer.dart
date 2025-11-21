@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'package:brain_circle/repo/study_times_repository.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'chronometer_notification.dart';
 
@@ -6,9 +8,15 @@ import 'chronometer_notification.dart';
 class FocusTimer {
   FocusTimer._();
   static final FocusTimer instance = FocusTimer._();
+  
+  final studyTimesRepository = StudyTimesRepository.instance;
+  final user = FirebaseAuth.instance.currentUser;
 
   final ValueNotifier<Duration> elapsed = ValueNotifier(Duration.zero);
   final ValueNotifier<bool> running = ValueNotifier(false);
+
+  DateTime sessionStarted = DateTime.now();
+  DateTime sessionFinished = DateTime.now();
 
   Timer? _timer;
   bool _disposed = false;
@@ -17,6 +25,10 @@ class FocusTimer {
     if (running.value) return;
     _timer?.cancel();
     running.value = true;
+
+    print("duration when started: ${elapsed.value}");
+    
+    sessionStarted = DateTime.now();
 
     await ChronometerNotification.showRunning(elapsed.value.inSeconds);
 
@@ -33,6 +45,10 @@ class FocusTimer {
     if (!running.value) return;
     _timer?.cancel();
     running.value = false;
+
+    sessionFinished = DateTime.now();
+
+    studyTimesRepository.uploadSession(user!.uid, sessionStarted, sessionFinished);
 
     await ChronometerNotification.showPaused(elapsed.value.inSeconds);
   }
