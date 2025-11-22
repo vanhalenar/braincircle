@@ -81,4 +81,8 @@ class UserRepository {
           return totalSeconds;
         });
   }
+
+  void setStudyState(String userId, bool state) {
+    users.doc(userId).update({"studying": state});
+  }
 }
