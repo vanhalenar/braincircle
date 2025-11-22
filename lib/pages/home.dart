@@ -3,9 +3,14 @@ import 'package:brain_circle/pages/focus_page.dart';
 import 'package:brain_circle/utils/focus_timer.dart';
 import 'package:brain_circle/widgets/friend_card_big.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:brain_circle/repo/user_repository.dart';
 
 class Home extends StatefulWidget {
-  const Home({super.key});
+  Home({super.key});
+
+  final userRepository = UserRepository.instance;
   static const List<String> names = ['Lesana', 'Mark', 'Nina', 'Teodor'];
 
   @override
@@ -15,10 +20,32 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   late FocusTimer _focusTimer;
 
+  final db = FirebaseFirestore.instance;
+  final user = FirebaseAuth.instance.currentUser;
+  late final dynamic userDoc;
+  Map<String, dynamic>? userData;
+
   @override
   void initState() {
     super.initState();
+    _initTimer();
+    userDoc = db.collection('users').doc(user!.uid);
+    userDoc.get().then((snapshot) {
+      setState(() {
+        userData = snapshot.data();
+      });
+    });
+  }
+
+  Future<void> _initTimer() async {
     _focusTimer = FocusTimer.instance;
+
+    final initialSeconds = await widget.userRepository
+        .getTotalStudyTimeToday(user!.uid)
+        .first;
+
+    print("initial seconds: $initialSeconds");
+    _focusTimer.elapsed.value = Duration(seconds: initialSeconds);
   }
 
   @override
@@ -77,20 +104,42 @@ class _HomeState extends State<Home> {
               ),
             ),
           ),
-          Padding(
-            padding: EdgeInsetsGeometry.fromLTRB(10, 10, 10, 30),
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                spacing: 10,
-                children: [
-                  FriendCardBig(name: "Lesana"),
-                  FriendCardBig(name: "Mark", working: true,),
-                  FriendCardBig(name: "Nina"),
-                  FriendCardBig(name: "Teodor"),
-                ],
-              ),
-            ),
+          StreamBuilder(
+            stream: widget.userRepository.getFriends(),
+            builder: (context, asyncSnapshot) {
+              if (asyncSnapshot.connectionState == ConnectionState.waiting) {
+                return Center(child: CircularProgressIndicator());
+              }
+
+              if (asyncSnapshot.hasError) {
+                return Text("Error: ${asyncSnapshot.error}");
+              }
+
+              if (!asyncSnapshot.hasData) {
+                return Text("No data");
+              }
+              final friendDocs = asyncSnapshot.data!;
+              return Hero(
+                tag: 'friends',
+                child: Padding(
+                  padding: EdgeInsetsGeometry.fromLTRB(10, 10, 10, 30),
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      spacing: 10,
+                      children: friendDocs.map((doc) {
+                        final data = doc.data() as Map<String, dynamic>;
+                        return FriendCardBig(
+                          name: data['name'],
+                          working: data['studying'],
+                          userID: doc.id,
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                ),
+              );
+            },
           ),
         ],
       ),

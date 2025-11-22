@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:math';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -10,10 +11,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:google_sign_in/google_sign_in.dart';
 
 class FirebaseAuthRepository {
-  FirebaseAuthRepository({
-    this.maxAttempts = 5,
-    this.lockoutMinutes = 5,
-  });
+  FirebaseAuthRepository({this.maxAttempts = 5, this.lockoutMinutes = 5});
 
   final int maxAttempts;
   final int lockoutMinutes;
@@ -34,10 +32,12 @@ class FirebaseAuthRepository {
   }
 
   Future<Map<String, dynamic>> _readProfiles() => _readJson('profiles');
-  Future<void> _writeProfiles(Map<String, dynamic> map) => _writeJson('profiles', map);
+  Future<void> _writeProfiles(Map<String, dynamic> map) =>
+      _writeJson('profiles', map);
 
   Future<Map<String, dynamic>> _readLockout() => _readJson('lockout');
-  Future<void> _writeLockout(Map<String, dynamic> map) => _writeJson('lockout', map);
+  Future<void> _writeLockout(Map<String, dynamic> map) =>
+      _writeJson('lockout', map);
 
   String _newToken() => const Uuid().v4();
 
@@ -106,7 +106,9 @@ class FirebaseAuthRepository {
     if (!consentAccepted) throw Exception('You must accept Terms & Privacy.');
 
     if (birthDate != null) {
-      final thirteen = DateTime.now().subtract(const Duration(days: 365 * 13 + 3));
+      final thirteen = DateTime.now().subtract(
+        const Duration(days: 365 * 13 + 3),
+      );
       if (birthDate.isAfter(thirteen)) {
         throw Exception('You must be at least 13 years old.');
       }
@@ -118,6 +120,13 @@ class FirebaseAuthRepository {
     );
 
     await cred.user?.sendEmailVerification();
+    final uid = cred.user!.uid;
+
+    await FirebaseFirestore.instance.collection('users').doc(uid).set({
+      'name': name,
+      'friends': [],
+      'studying': false,
+    });
 
     final profiles = await _readProfiles();
     profiles[email] = {
@@ -127,7 +136,6 @@ class FirebaseAuthRepository {
       'consentAt': DateTime.now().millisecondsSinceEpoch,
     };
     await _writeProfiles(profiles);
-
   }
 
   Future<bool> login(String email, String password) async {
@@ -218,10 +226,7 @@ class FirebaseAuthRepository {
     return null;
   }
 
-  Future<void> updateProfile({
-    String? displayName,
-    DateTime? birthDate,
-  }) async {
+  Future<void> updateProfile({String? displayName, DateTime? birthDate}) async {
     final user = _auth.currentUser;
     final email = user?.email;
     if (email == null) return;

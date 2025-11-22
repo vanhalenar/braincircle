@@ -1,10 +1,19 @@
+import 'package:brain_circle/repo/user_repository.dart';
+import 'package:brain_circle/util/formatter.dart';
 import 'package:flutter/material.dart';
 
 class FriendCardBig extends StatelessWidget {
   String name;
   bool working;
+  String userID;
+  final userRepository = UserRepository.instance;
+  FriendCardBig({
+    super.key,
+    required this.name,
+    this.working = false,
+    required this.userID,
+  });
   
-  FriendCardBig({super.key, required this.name, this.working = false});
   @override
   Widget build(BuildContext context) {
     String workingText = working ? 'Working' : 'Away';
@@ -14,14 +23,16 @@ class FriendCardBig extends StatelessWidget {
         //color: Theme.of(context).colorScheme.secondaryContainer,
         //color: Theme.of(context).colorScheme.surface,
         //color: Theme.of(context).cardColor,
-        color: working ? Theme.of(context).colorScheme.secondaryContainer : null,
+        color: working
+            ? Theme.of(context).colorScheme.secondaryContainer
+            : null,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
               padding: EdgeInsets.fromLTRB(0, 30, 0, 50),
               child: CircleAvatar(
-                backgroundImage: AssetImage('assets/$name.jpg'),
+                backgroundImage: AssetImage('assets/placeholder.png'),
                 radius: 45,
               ),
             ),
@@ -29,10 +40,7 @@ class FriendCardBig extends StatelessWidget {
               padding: EdgeInsets.fromLTRB(10, 0, 0, 0),
               child: Align(
                 alignment: Alignment.centerLeft,
-                child: Text(
-                  name,
-                  style: Theme.of(context).textTheme.bodyLarge,
-                ),
+                child: Text(name, style: Theme.of(context).textTheme.bodyLarge),
               ),
             ),
             Padding(
@@ -51,9 +59,16 @@ class FriendCardBig extends StatelessWidget {
               padding: EdgeInsets.fromLTRB(10, 10, 0, 0),
               child: Align(
                 alignment: Alignment.centerLeft,
-                child: Text(
-                  '00:00:00',
-                  style: Theme.of(context).textTheme.bodyLarge,
+                child: StreamBuilder(
+                  stream: userRepository.getTotalStudyTime(userID),
+                  builder: (context, snapshot) {
+                    if (!snapshot.hasData) {
+                      return Text("00:00:00");
+                    }
+
+                    final seconds = Formatter.format(snapshot.data);
+                    return Text(seconds);
+                  },
                 ),
               ),
             ),
