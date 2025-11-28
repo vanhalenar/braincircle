@@ -306,11 +306,11 @@ class _GoalsCardState extends State<GoalsCard> {
 
     return Card(
       color: const Color(0xFFF7FAF7),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       elevation: 2,
-      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      margin: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
       child: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(14),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -346,6 +346,8 @@ class _GoalsCardState extends State<GoalsCard> {
               return InkWell(
                 onLongPress: () => _editGoal(context, index),
                 child: CheckboxListTile(
+                  contentPadding: EdgeInsets.zero,
+                  visualDensity: VisualDensity.compact,
                   title: Text(goal['title'] ?? ''),
                   subtitle: Text.rich(
                     TextSpan(
@@ -375,7 +377,7 @@ class _GoalsCardState extends State<GoalsCard> {
                   onChanged: (value) {
                     setState(() => _checked[index] = value ?? false);
                   },
-                  controlAffinity: ListTileControlAffinity.leading,
+                  controlAffinity: ListTileControlAffinity.trailing,
                 ),
               );
             }),
