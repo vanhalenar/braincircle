@@ -1,30 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class GoalsCard extends StatefulWidget {
   final String periodTitle;
   final List<Map<String, dynamic>> goals;
-  final VoidCallback? onViewAllPressed;
 
-  const GoalsCard({
-    super.key,
-    required this.periodTitle,
-    required this.goals,
-    this.onViewAllPressed,
-  });
+  const GoalsCard({super.key, required this.periodTitle, required this.goals});
 
   @override
   State<GoalsCard> createState() => _GoalsCardState();
 }
 
 class _GoalsCardState extends State<GoalsCard> {
-  late List<Map<String, dynamic>> _goals;
   late List<bool> _checked;
 
   @override
   void initState() {
     super.initState();
-    _goals = List.from(widget.goals);
+    _checked = List.generate(widget.goals.length, (_) => false);
+  }
+
+  @override
+  void didUpdateWidget(covariant GoalsCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
     _checked = List.generate(widget.goals.length, (_) => false);
   }
 
@@ -127,13 +127,7 @@ class _GoalsCardState extends State<GoalsCard> {
                               final text = controller.text.trim();
                               if (text.isEmpty) return;
 
-                              final date = (widget.periodTitle == "Today")
-                                  ? DateTime(
-                                      DateTime.now().year,
-                                      DateTime.now().month,
-                                      DateTime.now().day,
-                                    )
-                                  : (selectedDate ?? DateTime.now());
+                              final date = selectedDate ?? DateTime.now();
 
                               Navigator.pop(context, {
                                 'title': text,
@@ -156,15 +150,24 @@ class _GoalsCardState extends State<GoalsCard> {
     );
 
     if (newGoal != null && newGoal['title']!.isNotEmpty) {
-      setState(() {
-        _goals.add(newGoal);
-        _checked.add(false);
-      });
+      final userId = FirebaseAuth.instance.currentUser!.uid;
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .collection('goals')
+          .add({
+            'title': newGoal['title'],
+            'visibility': newGoal['visibility'],
+            'date': Timestamp.fromDate(newGoal['date']),
+            'completed': false,
+          });
     }
   }
 
-  Future<void> _editGoal(BuildContext context, int index) async {
-    final goal = _goals[index];
+  Future<void> _editGoal(
+    BuildContext context,
+    Map<String, dynamic> goal,
+  ) async {
     final controller = TextEditingController(text: goal['title']);
     String selectedVisibility = goal['visibility'] ?? 'Everyone';
     DateTime selectedDate = goal['date'] ?? DateTime.now();
@@ -240,12 +243,11 @@ class _GoalsCardState extends State<GoalsCard> {
                         },
                       ),
                       const SizedBox(height: 16),
-                      if (widget.periodTitle != "Today")
-                        OutlinedButton.icon(
-                          icon: const Icon(Icons.calendar_today_outlined),
-                          label: Text(DateFormat.yMMMMd().format(selectedDate)),
-                          onPressed: pickDate,
-                        ),
+                      OutlinedButton.icon(
+                        icon: const Icon(Icons.calendar_today_outlined),
+                        label: Text(DateFormat.yMMMMd().format(selectedDate)),
+                        onPressed: pickDate,
+                      ),
                       const SizedBox(height: 16),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.end,
@@ -287,16 +289,23 @@ class _GoalsCardState extends State<GoalsCard> {
       ),
     );
 
-    if (editedGoal != null && editedGoal['delete'] == true) {
-      setState(() {
-        _goals.removeAt(index);
-        _checked.removeAt(index);
-      });
-      return;
-    }
+    if (editedGoal != null) {
+      final userId = FirebaseAuth.instance.currentUser!.uid;
+      final docRef = FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .collection('goals')
+          .doc(goal['id']);
 
-    if (editedGoal != null && editedGoal['title'] != null) {
-      setState(() => _goals[index] = editedGoal);
+      if (editedGoal['delete'] == true) {
+        await docRef.delete();
+      } else {
+        await docRef.update({
+          'title': editedGoal['title'],
+          'visibility': editedGoal['visibility'],
+          'date': Timestamp.fromDate(editedGoal['date']),
+        });
+      }
     }
   }
 
@@ -331,20 +340,20 @@ class _GoalsCardState extends State<GoalsCard> {
               ],
             ),
             const SizedBox(height: 4),
-            if (_goals.isEmpty)
+            if (widget.goals.isEmpty)
               const Padding(
                 padding: EdgeInsets.symmetric(vertical: 8),
                 child: Text("No goals yet."),
               ),
-            ...List.generate(_goals.length, (index) {
-              final goal = _goals[index];
+            ...List.generate(widget.goals.length, (index) {
+              final goal = widget.goals[index];
               final date = goal['date'] as DateTime;
               final visibility = goal['visibility'] ?? 'Everyone';
 
               if (index >= _checked.length) _checked.add(false);
 
               return InkWell(
-                onLongPress: () => _editGoal(context, index),
+                onLongPress: () => _editGoal(context, goal),
                 child: CheckboxListTile(
                   contentPadding: EdgeInsets.zero,
                   visualDensity: VisualDensity.compact,
