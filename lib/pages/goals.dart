@@ -25,9 +25,7 @@ class Goals extends StatelessWidget {
             return const Center(child: CircularProgressIndicator());
           }
 
-          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return const Center(child: Text("No goals yet."));
-          }
+          final docs = snapshot.data?.docs ?? [];
 
           // ---- DATE HELPERS ----
           final now = DateTime.now();
@@ -47,7 +45,7 @@ class Goals extends StatelessWidget {
           List<Map<String, dynamic>> monthGoals = [];
 
           // ---- CLASSIFY GOALS ----
-          for (var doc in snapshot.data!.docs) {
+          for (var doc in docs) {
             final data = doc.data() as Map<String, dynamic>;
             final DateTime date = (data['date'] as Timestamp).toDate();
 
