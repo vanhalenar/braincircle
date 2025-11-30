@@ -1,206 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:brain_circle/widgets/statistics/today_stats_card.dart';
+import 'package:brain_circle/widgets/statistics/most_focused_card.dart';
+import 'package:brain_circle/widgets/statistics/weekly_bar_chart.dart';
+import 'package:brain_circle/widgets/statistics/calendar_day_cell.dart';
+import 'package:brain_circle/widgets/statistics/day_name.dart';
+import 'package:brain_circle/widgets/statistics/daily_data.dart';
 
-// --- Color Palette and Constants ---
-// Custom color matching the image's green theme
+// --- Color Palette ---
 const Color _primaryGreen = Color(0xFF69B880);
 const Color _lightGreenBackground = Color(0xFFF2FBF4);
 const Color _paleGreen = Color(0xFFE0F4E6);
 
-// --- Custom Data Models ---
-class DailyData {
-  final String day;
-  final double hours;
-  final double maxHours = 9.0; // Reference for scaling the chart bars
-  final String label;
-
-  DailyData(this.day, this.hours, this.label);
-}
-
-final List<DailyData> mockWeeklyData = [
-  DailyData('Mo', 3.0, '3h'),
-  DailyData('Tu', 5.0, '5h'),
-  DailyData('We', 2.5, '2.5h\n(12%)'), // Example for percentage label
-  DailyData('Th', 4.0, '4h'),
-  DailyData('Fr', 4.5, '4.5h'),
-  DailyData('Sa', 0.0, '0h'),
-  DailyData('Su', 0.0, '0h'),
-];
-
-// --- 1. Reusable Widget: Today Stat Card ---
-class _TodayStatCard extends StatelessWidget {
-  final String value;
-  final String unit;
-  final String description;
-  final Color backgroundColor;
-  final Widget? icon;
-
-  const _TodayStatCard({
-    required this.value,
-    required this.unit,
-    required this.description,
-    this.backgroundColor = Colors.white,
-    this.icon,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 120,
-      height: 120,
-      padding: const EdgeInsets.all(4), // minimal padding
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.green, width: 0.5),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center, // center horizontally
-        children: [
-          // Row with value and unit
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.baseline,
-            textBaseline: TextBaseline.alphabetic,
-            children: [
-              Text(
-                value,
-                style: const TextStyle(
-                  fontSize: 60, // adjust to fit
-                  fontWeight: FontWeight.w600,
-                  color: _primaryGreen,
-                ),
-              ),
-              Text(
-                unit,
-                style: TextStyle(
-                  fontSize: 16,
-                  letterSpacing: 16 * -0.05,
-                  color: _primaryGreen.withOpacity(0.8),
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
-          Text(
-            description,
-            style: const TextStyle(
-              fontSize: 8,
-              letterSpacing: 10 * -0.005,
-              color: Colors.black54,
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// --- 2. Reusable Widget: Weekly Bar Chart ---
-class _WeeklyBarChart extends StatelessWidget {
-  final List<DailyData> data;
-  final double maxBarHeight = 100.0;
-
-  const _WeeklyBarChart(this.data);
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceAround,
-      crossAxisAlignment: CrossAxisAlignment.end,
-      children: data.map((daily) {
-        final double barHeight = (daily.hours / daily.maxHours) * maxBarHeight;
-
-        return Column(
-          children: [
-            // Hours/Percentage Label (positioned above the bar)
-            Text(
-              daily.label,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 10,
-                color: Colors.black87,
-                height: 1.2,
-              ),
-            ),
-            const SizedBox(height: 4),
-
-            // The Bar
-            Container(
-              height: barHeight > 0
-                  ? barHeight
-                  : 2, // Minimum height for 0 hours
-              width: 32,
-              decoration: BoxDecoration(
-                color: daily.hours > 0 ? _primaryGreen : _paleGreen,
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            const SizedBox(height: 8),
-
-            // Day Label
-            Text(
-              daily.day,
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
-              ),
-            ),
-          ],
-        );
-      }).toList(),
-    );
-  }
-}
-
-// --- 3. Reusable Widget: Calendar Day Cell ---
-class _CalendarDayCell extends StatelessWidget {
-  final int day;
-  final bool isCompleted;
-  final bool isSelected;
-  final bool isCurrentMonth;
-  final VoidCallback onTap;
-
-  const _CalendarDayCell({
-    required this.day,
-    this.isCompleted = false,
-    this.isSelected = false,
-    this.isCurrentMonth = true,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final cellColor = isCompleted ? _primaryGreen : _paleGreen;
-    final textColor = isCurrentMonth ? Colors.black87 : Colors.black38;
-
-    return GestureDetector(
-      onTap: isCurrentMonth
-          ? onTap
-          : null, // Only tap on days in the current month
-      child: Container(
-        alignment: Alignment.center,
-        margin: const EdgeInsets.all(4),
-        decoration: BoxDecoration(
-          color: isCurrentMonth ? cellColor : Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: isSelected
-              ? Border.all(color: Colors.deepOrange, width: 2)
-              : null,
-        ),
-        child: Text(
-          '$day',
-          style: TextStyle(
-            color: isCompleted ? Colors.white : textColor,
-            fontWeight: isCompleted ? FontWeight.bold : FontWeight.normal,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// --- Main StatefulWidget and State Implementation ---
 class Statistics extends StatefulWidget {
   const Statistics({super.key});
 
@@ -209,10 +19,50 @@ class Statistics extends StatefulWidget {
 }
 
 class _StatisticsState extends State<Statistics> {
-  // State to manage the calendar pop-up
   int? _selectedDay;
 
-  // Mock data for the selected day pop-up
+  // -----------------------
+  // WEEK NAVIGATION LOGIC
+  // -----------------------
+
+  late DateTime _currentWeekStart;
+
+  /// Vrátí PONDĚLÍ daného týdne podle českého formátu
+  DateTime _getMonday(DateTime date) {
+    final d = date.toLocal(); // <<< DŮLEŽITÉ – české časové pásmo
+    int weekday = d.weekday; // 1 = Mo ... 7 = Su
+    return DateTime(
+      d.year,
+      d.month,
+      d.day,
+    ).subtract(Duration(days: weekday - 1));
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _currentWeekStart = _getMonday(DateTime.now());
+  }
+
+  /// Formát týdne "24.11. - 30.11."
+  String _formatWeek(DateTime monday) {
+    final sunday = monday.add(const Duration(days: 6));
+    return "${monday.day}.${monday.month}. - ${sunday.day}.${sunday.month}.";
+  }
+
+  void _previousWeek() {
+    setState(() {
+      _currentWeekStart = _currentWeekStart.subtract(const Duration(days: 7));
+    });
+  }
+
+  void _nextWeek() {
+    setState(() {
+      _currentWeekStart = _currentWeekStart.add(const Duration(days: 7));
+    });
+  }
+  // -----------------------
+
   final Map<int, String> _dayDetails = {
     10: 'Focused Time: 9h\nCompleted Goals: Study algorithms\nStudy for midterm',
   };
@@ -238,9 +88,9 @@ class _StatisticsState extends State<Statistics> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
-                      'Day 10 Summary',
-                      style: TextStyle(
+                    Text(
+                      'Day $day Summary',
+                      style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 18,
                       ),
@@ -252,7 +102,6 @@ class _StatisticsState extends State<Statistics> {
                   ],
                 ),
                 const Divider(),
-                // Displaying the mock data
                 Text(
                   _dayDetails[day]!,
                   style: const TextStyle(fontSize: 14, height: 1.5),
@@ -262,13 +111,11 @@ class _StatisticsState extends State<Statistics> {
           );
         },
       ).then((_) {
-        // Reset selected day when the dialog is closed
         setState(() {
           _selectedDay = null;
         });
       });
     } else {
-      // For days without details
       setState(() {
         _selectedDay = null;
       });
@@ -284,17 +131,12 @@ class _StatisticsState extends State<Statistics> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // --- Today Section ---
             _buildSectionTitle('Today'),
             _buildTodayStats(),
-            const SizedBox(height: 32),
-
-            // --- Weekly Section ---
+            const SizedBox(height: 8),
             _buildSectionTitle('Weekly'),
             _buildWeeklyStats(),
-            const SizedBox(height: 32),
-
-            // --- Monthly Section ---
+            const SizedBox(height: 8),
             _buildSectionTitle('Monthly'),
             _buildMonthlyStats(),
           ],
@@ -303,24 +145,25 @@ class _StatisticsState extends State<Statistics> {
     );
   }
 
+  // --- Section Title Widget ---
   Widget _buildSectionTitle(String title) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 16.0),
       child: Center(
         child: Container(
-          width: 80, // fixed width
-          height: 20, // fixed height
-          alignment: Alignment.center, // center the text inside the container
+          width: 80,
+          height: 20,
+          alignment: Alignment.center,
           decoration: BoxDecoration(
-            color: _primaryGreen, // green background
-            borderRadius: BorderRadius.circular(50), // oval shape
+            color: _primaryGreen,
+            borderRadius: BorderRadius.circular(50),
           ),
           child: Text(
             title,
             style: const TextStyle(
-              fontSize: 12, // smaller font to fit height
+              fontSize: 12,
               fontWeight: FontWeight.w400,
-              color: Colors.black, // black text
+              color: Colors.black,
             ),
             textAlign: TextAlign.center,
           ),
@@ -329,7 +172,7 @@ class _StatisticsState extends State<Statistics> {
     );
   }
 
-  // Widget composition for the Today section
+  // --- Today Stats Section ---
   Widget _buildTodayStats() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
@@ -337,30 +180,27 @@ class _StatisticsState extends State<Statistics> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(
-            child: _TodayStatCard(
+            child: TodayStatCard(
               value: '8',
               unit: 'hours',
               description: 'Total time studied today',
-              backgroundColor: _paleGreen,
             ),
           ),
           const SizedBox(width: 8),
           Expanded(
-            child: _TodayStatCard(
+            child: TodayStatCard(
               value: '4',
               unit: 'days',
               description: 'Study streak',
-              backgroundColor: _paleGreen,
-              icon: const Text('🔥', style: TextStyle(fontSize: 16)),
             ),
           ),
           const SizedBox(width: 8),
           Expanded(
-            child: _TodayStatCard(
-              value: '6-8',
-              unit: 'p.m.',
+            child: MostFocusedPeriodCard(
+              value1: '6',
+              value2: '8',
+              unit: 'pm',
               description: 'Most focused period of day',
-              backgroundColor: _paleGreen,
             ),
           ),
         ],
@@ -368,59 +208,76 @@ class _StatisticsState extends State<Statistics> {
     );
   }
 
-  // Widget composition for the Weekly section
+  // --- Weekly Stats Section ---
   Widget _buildWeeklyStats() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Navigation Row
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              IconButton(
-                icon: const Icon(Icons.chevron_left, color: _primaryGreen),
-                onPressed: () {},
-              ),
-              const Text(
-                '12.5. - 18.5.',
-                style: TextStyle(fontWeight: FontWeight.w500),
-              ),
-              IconButton(
-                icon: const Icon(Icons.chevron_right, color: _primaryGreen),
-                onPressed: () {},
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          // Average Text
-          const Text(
-            '5 Hours',
-            style: TextStyle(
-              fontSize: 36,
-              fontWeight: FontWeight.w800,
-              color: Colors.black87,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Week Navigation
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.chevron_left, color: _primaryGreen),
+                  onPressed: _previousWeek,
+                ),
+                Text(
+                  _formatWeek(_currentWeekStart),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w500,
+                    color: _primaryGreen,
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.chevron_right, color: _primaryGreen),
+                  onPressed: _nextWeek,
+                ),
+              ],
             ),
-          ),
-          const Text(
-            'DAILY AVERAGE',
-            style: TextStyle(fontSize: 12, color: Colors.black54),
-          ),
-          const SizedBox(height: 24),
-          // Bar Chart
-          _WeeklyBarChart(mockWeeklyData),
-        ],
+
+            // Daily Average
+            Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.baseline,
+              textBaseline: TextBaseline.alphabetic,
+              children: const [
+                Text(
+                  '5 Hours',
+                  style: TextStyle(
+                    fontSize: 36,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.black87,
+                  ),
+                ),
+                SizedBox(width: 4),
+                Text(
+                  'DAILY AVERAGE',
+                  style: TextStyle(fontSize: 12, color: Colors.black54),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+
+            WeeklyBarChart(mockWeeklyData),
+          ],
+        ),
       ),
     );
   }
 
-  // Widget composition for the Monthly section
+  // --- Monthly Stats Section ---
   Widget _buildMonthlyStats() {
-    // Mock days in the calendar grid (5x7 grid)
     final List<int> days = [
-      ...List.generate(4, (i) => 27 + i), // Previous month
-      ...List.generate(31, (i) => 1 + i), // Current month (March)
+      ...List.generate(4, (i) => 27 + i),
+      ...List.generate(31, (i) => 1 + i),
     ];
 
     return Padding(
@@ -428,7 +285,7 @@ class _StatisticsState extends State<Statistics> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Navigation Row and Summary
+          // Month Navigation
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -454,20 +311,23 @@ class _StatisticsState extends State<Statistics> {
               ),
             ],
           ),
+
           const SizedBox(height: 16),
-          // Day Names Row
-          const Row(
-            children: [
-              _DayName('Su'),
-              _DayName('Mo'),
-              _DayName('Tu'),
-              _DayName('We'),
-              _DayName('Th'),
-              _DayName('Fr'),
-              _DayName('Sa'),
+
+          Row(
+            children: const [
+              DayName('Su'),
+              DayName('Mo'),
+              DayName('Tu'),
+              DayName('We'),
+              DayName('Th'),
+              DayName('Fr'),
+              DayName('Sa'),
             ],
           ),
-          // Calendar Grid
+
+          const SizedBox(height: 4),
+
           GridView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
@@ -480,12 +340,11 @@ class _StatisticsState extends State<Statistics> {
             itemCount: days.length,
             itemBuilder: (context, index) {
               final day = days[index];
-              final isCurrentMonth =
-                  index >= 4 && index <= 34; // March 1st starts at index 4
+              final isCurrentMonth = index >= 4 && index <= 34;
               final isCompleted =
                   [6, 10, 13, 17, 20, 24].contains(day) && isCurrentMonth;
 
-              return _CalendarDayCell(
+              return CalendarDayCell(
                 day: day,
                 isCompleted: isCompleted,
                 isCurrentMonth: isCurrentMonth,
@@ -495,28 +354,6 @@ class _StatisticsState extends State<Statistics> {
             },
           ),
         ],
-      ),
-    );
-  }
-}
-
-// Helper widget for day names in the calendar
-class _DayName extends StatelessWidget {
-  final String name;
-  const _DayName(this.name);
-
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: Center(
-        child: Text(
-          name,
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            color: _primaryGreen,
-            fontSize: 12,
-          ),
-        ),
       ),
     );
   }

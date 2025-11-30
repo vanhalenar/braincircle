@@ -24,24 +24,33 @@ class Goals extends StatelessWidget {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
+
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
             return const Center(child: Text("No goals yet."));
           }
 
+          // ---- DATE HELPERS ----
           final now = DateTime.now();
           final today = DateTime(now.year, now.month, now.day);
-          final startOfWeek = today.subtract(Duration(days: today.weekday - 1));
+
+          final startOfWeek = today.subtract(
+            Duration(days: today.weekday - 1),
+          ); // Monday
           final endOfWeek = startOfWeek.add(const Duration(days: 6));
+
           final startOfMonth = DateTime(today.year, today.month, 1);
           final endOfMonth = DateTime(today.year, today.month + 1, 0);
 
+          // ---- FINAL GOAL LISTS ----
           List<Map<String, dynamic>> todayGoals = [];
           List<Map<String, dynamic>> weekGoals = [];
           List<Map<String, dynamic>> monthGoals = [];
 
+          // ---- CLASSIFY GOALS ----
           for (var doc in snapshot.data!.docs) {
             final data = doc.data() as Map<String, dynamic>;
-            final date = (data['date'] as Timestamp).toDate();
+            final DateTime date = (data['date'] as Timestamp).toDate();
+
             final goal = {
               'id': doc.id,
               'title': data['title'],
@@ -52,10 +61,14 @@ class Goals extends StatelessWidget {
 
             if (_isSameDay(date, today)) {
               todayGoals.add(goal);
-            } else if (date.isAfter(today.subtract(const Duration(days: 1))) &&
+            } else if (date.isAfter(
+                  startOfWeek.subtract(const Duration(days: 1)),
+                ) &&
                 date.isBefore(endOfWeek.add(const Duration(days: 1)))) {
               weekGoals.add(goal);
-            } else if (date.isAfter(endOfWeek) &&
+            } else if (date.isAfter(
+                  startOfMonth.subtract(const Duration(days: 1)),
+                ) &&
                 date.isBefore(endOfMonth.add(const Duration(days: 1)))) {
               monthGoals.add(goal);
             }

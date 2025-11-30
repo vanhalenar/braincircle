@@ -19,13 +19,19 @@ class _GoalsCardState extends State<GoalsCard> {
   @override
   void initState() {
     super.initState();
-    _checked = List.generate(widget.goals.length, (_) => false);
+    _checked = List.generate(
+      widget.goals.length,
+      (i) => widget.goals[i]['completed'] ?? false,
+    );
   }
 
   @override
   void didUpdateWidget(covariant GoalsCard oldWidget) {
     super.didUpdateWidget(oldWidget);
-    _checked = List.generate(widget.goals.length, (_) => false);
+    _checked = List.generate(
+      widget.goals.length,
+      (i) => widget.goals[i]['completed'] ?? false,
+    );
   }
 
   Future<void> _addGoal(BuildContext context) async {
@@ -350,7 +356,9 @@ class _GoalsCardState extends State<GoalsCard> {
               final date = goal['date'] as DateTime;
               final visibility = goal['visibility'] ?? 'Everyone';
 
-              if (index >= _checked.length) _checked.add(false);
+              if (index >= _checked.length) {
+                _checked.add(goal['completed'] ?? false);
+              }
 
               return InkWell(
                 onLongPress: () => _editGoal(context, goal),
@@ -383,8 +391,18 @@ class _GoalsCardState extends State<GoalsCard> {
                     ),
                   ),
                   value: _checked[index],
-                  onChanged: (value) {
+                  onChanged: (value) async {
                     setState(() => _checked[index] = value ?? false);
+
+                    // ⬇⬇⬇ **DŮLEŽITÉ – aktualizace v databázi!** ⬇⬇⬇
+                    final userId = FirebaseAuth.instance.currentUser!.uid;
+                    final docRef = FirebaseFirestore.instance
+                        .collection('users')
+                        .doc(userId)
+                        .collection('goals')
+                        .doc(goal['id']);
+
+                    await docRef.update({'completed': value ?? false});
                   },
                   controlAffinity: ListTileControlAffinity.trailing,
                 ),
