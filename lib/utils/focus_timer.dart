@@ -1,4 +1,7 @@
 import 'dart:async';
+import 'package:brain_circle/repo/study_times_repository.dart';
+import 'package:brain_circle/repo/user_repository.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'chronometer_notification.dart';
 
@@ -6,9 +9,16 @@ import 'chronometer_notification.dart';
 class FocusTimer {
   FocusTimer._();
   static final FocusTimer instance = FocusTimer._();
+  
+  final studyTimesRepository = StudyTimesRepository.instance;
+  final userRepository = UserRepository.instance;
+  final user = FirebaseAuth.instance.currentUser;
 
   final ValueNotifier<Duration> elapsed = ValueNotifier(Duration.zero);
   final ValueNotifier<bool> running = ValueNotifier(false);
+
+  DateTime sessionStarted = DateTime.now();
+  DateTime sessionFinished = DateTime.now();
 
   Timer? _timer;
   bool _disposed = false;
@@ -18,6 +28,9 @@ class FocusTimer {
     _timer?.cancel();
     running.value = true;
 
+    sessionStarted = DateTime.now();
+
+    userRepository.setStudyState(user!.uid, true);
     await ChronometerNotification.showRunning(elapsed.value.inSeconds);
 
     // Single timer: increment local counter every second
@@ -33,6 +46,12 @@ class FocusTimer {
     if (!running.value) return;
     _timer?.cancel();
     running.value = false;
+
+    sessionFinished = DateTime.now();
+
+    userRepository.setStudyState(user!.uid, false);
+
+    studyTimesRepository.uploadSession(user!.uid, sessionStarted, sessionFinished);
 
     await ChronometerNotification.showPaused(elapsed.value.inSeconds);
   }
@@ -58,6 +77,10 @@ class FocusTimer {
     final m = d.inMinutes.remainder(60);
     final s = d.inSeconds.remainder(60);
     return "${two(h)}:${two(m)}:${two(s)}";
+  }
+  
+  void setInitialDuration(Duration d) {
+    elapsed.value = d;
   }
 
   void dispose() {
