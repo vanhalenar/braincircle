@@ -3,9 +3,10 @@ import 'package:brain_circle/pages/home.dart';
 import 'package:brain_circle/pages/statistics.dart';
 import 'package:flutter/material.dart';
 import 'package:brain_circle/pages/account_page.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class Homepage extends StatefulWidget {
-  const Homepage({super.key});
+  Homepage({super.key});
 
   @override
   State<Homepage> createState() => _HomepageState();
@@ -15,12 +16,14 @@ class _HomepageState extends State<Homepage> {
   int currentPageIndex = 0;
   final _pageController = PageController();
 
+  final user = FirebaseAuth.instance.currentUser;
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
        appBar: AppBar(
               centerTitle: true,
-              title: const Text("Hello, user"),
+              title: Text("Hello, ${user!.displayName?.split(' ').first}!"),
               backgroundColor: Theme.of(context).colorScheme.inversePrimary,
               actions: [
                 IconButton(
